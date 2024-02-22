@@ -60,7 +60,7 @@ $groupList = Get-MgGroup -All
 $groupNames = $groupList | Select-Object -ExpandProperty DisplayName
 
 # Convert the array of group names to a comma-separated string
-$groupNamesString = $groupNames -join ", "
+$groupNamesString = $groupNames -join ","
 
 # Example usage:
 $cloudRadialPublicKey = $env:CloudRadialApiPublicKey
