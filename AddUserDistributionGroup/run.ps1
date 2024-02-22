@@ -10,6 +10,7 @@ $error = ""
 
 $userEmail = $Request.Body.userEmail
 $groupName = $Request.Body.groupName
+$command = $Request.Body.command
 
 Write-Host "User Email: $userEmail"
 Write-Host "Group Name: $groupName"
@@ -45,7 +46,18 @@ $userObject = Get-MgUser -Filter "userPrincipalName eq '$userEmail'"
 Write-Host $userObject.userPrincipalName
 Write-Host $userObject.Id
 
-New-MgGroupMember -GroupId $groupObject.Id -DirectoryObjectId $userObject.Id
+if (-Not $command) {
+    $command = "add"
+}
+
+if ($command eq "add") {
+    New-MgGroupMember -GroupId $groupObject.Id -DirectoryObjectId $userObject.Id
+}
+else {
+    if ($command eq "remove") {
+        Remove-MgGroupMember -GroupId $groupObject.Id -DirectoryObjectId $userObject.Id
+    }
+}
 
 $body = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
 
