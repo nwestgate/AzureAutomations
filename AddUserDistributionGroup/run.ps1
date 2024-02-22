@@ -50,11 +50,11 @@ if (-Not $command) {
     $command = "add"
 }
 
-if ($command eq "add") {
+if ($command -eq "add") {
     New-MgGroupMember -GroupId $groupObject.Id -DirectoryObjectId $userObject.Id
 }
 else {
-    if ($command eq "remove") {
+    if ($command -eq "remove") {
         Remove-MgGroupMember -GroupId $groupObject.Id -DirectoryObjectId $userObject.Id
     }
 }
