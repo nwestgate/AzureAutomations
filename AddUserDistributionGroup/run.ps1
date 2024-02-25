@@ -6,7 +6,7 @@ param($Request, $TriggerMetadata)
 # Write to the Azure Functions log stream.
 Write-Host "Add User Distribution Group function triggered."
 
-$error = ""
+$err = ""
 
 $userEmail = $Request.Body.userEmail
 $groupName = $Request.Body.groupName
@@ -16,25 +16,21 @@ Write-Host "User Email: $userEmail"
 Write-Host "Group Name: $groupName"
 
 if (-Not $userEmail) {
-    $error = "userEmail cannot be blank."
+    $err = "userEmail cannot be blank."
 }
 if (-Not $groupName) {
-    $error = "groupName cannot be blank."
+    $err = "groupName cannot be blank."
 }
 
-if ($error) {
-    Write-Host $error
+if ($err) {
+    Write-Host $err
     break
 }
 
-$tenantId = $env:Azurative365AutomationsTenantId
-$appId = $env:Azurative365AutomationsAppId
-$appSecret = $env:Azurative365AutomationsAppSecretId
+$secure365Password = ConvertTo-SecureString -String $env:Ms365_AuthSecretId -AsPlainText -Force
+$credential365 = New-Object System.Management.Automation.PSCredential($Ms365_AuthAppId, $secure365Password)
 
-$securePassword = ConvertTo-SecureString -String $appSecret -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential($appId, $securePassword)
-
-Connect-MgGraph -ClientSecretCredential $credential -TenantId $tenantId
+Connect-MgGraph -ClientSecretCredential $credential365 -TenantId $Ms365_TenantId
 
 $groupObject = Get-MgGroup -Filter "displayName eq '$groupName'"
 

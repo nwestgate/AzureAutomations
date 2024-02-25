@@ -1,4 +1,3 @@
-using namespace System.Net
 
 # Input bindings are passed in via param block.
 param($Request, $TriggerMetadata)
@@ -44,14 +43,10 @@ if (-Not $companyId) {
     $companyId = 1
 }
 
-$tenantId = $env:Azurative365AutomationsTenantId
-$appId = $env:Azurative365AutomationsAppId
-$appSecret = $env:Azurative365AutomationsAppSecretId
+$secure365Password = ConvertTo-SecureString -String $env:Ms365_AuthSecretId -AsPlainText -Force
+$credential365 = New-Object System.Management.Automation.PSCredential($Ms365_AuthAppId, $secure365Password)
 
-$securePassword = ConvertTo-SecureString -String $appSecret -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential($appId, $securePassword)
-
-Connect-MgGraph -ClientSecretCredential $credential -TenantId $tenantId
+Connect-MgGraph -ClientSecretCredential $credential365 -TenantId $Ms365_TenantId
 
 # Get all groups in the tenant
 $groupList = Get-MgGroup -All
@@ -62,23 +57,23 @@ $groupNames = $groupList | Select-Object -ExpandProperty DisplayName
 # Convert the array of group names to a comma-separated string
 $groupNamesString = $groupNames -join ","
 
-# Example usage:
-$cloudRadialPublicKey = $env:CloudRadialApiPublicKey
-$cloudRadialSecretKey = $env:CloudRadialApiSecretKey
-Set-GroupListToken -AppId $cloudRadialPublicKey -SecretId $cloudRadialSecretKey -CompanyId $companyId -GroupList $groupNamesString
+Set-GroupListToken -AppId $$env:CloudRadialCsa_ApiPublicKey -SecretId $env:CloudRadialCsa_ApiPrivateKey -CompanyId $companyId -GroupList $groupNamesString
 
 
 # Write to the Azure Functions log stream.
 Write-Host "Updating folders for Company Id: $companyId."
 
-$body = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+$body = @{
+    text = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+} 
 
 if ($name) {
-    $body = "Hello, $name. This HTTP triggered function executed successfully."
+    $body.text = "Hello, $name. This HTTP triggered function executed successfully."
 }
 
 # Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
     Body = $body
+    ContentType = "application/json"
 })
