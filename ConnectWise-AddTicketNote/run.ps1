@@ -54,7 +54,6 @@ function Add-ConnectWiseNote {
             Message = "Error adding internal note: $($_.Exception.Message)"
         }
     } 
-    }
 }
 
 # Example usage:
