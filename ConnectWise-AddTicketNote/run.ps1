@@ -40,7 +40,7 @@ function Add-ConnectWiseInternalNote {
 Write-host $apiUrl
 
         # Make the API request to add the note
-     $result =   Invoke-RestMethod -AllowInsecureRedirect -Uri $apiUrl -Method Post -Headers $headers -Body $bodyJson
+     $result =   Invoke-RestMethod -Uri $apiUrl -Method Post -Headers $headers -Body $bodyJson
 
      Write-Host $result
 
