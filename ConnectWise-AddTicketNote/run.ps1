@@ -29,7 +29,7 @@ function Add-ConnectWiseNote {
         ticketId = $TicketId
         text = $Text
         detailDescriptionFlag = $true
-        internalAnalysisFlag = $Internal
+        #internalAnalysisFlag = $Internal
     } | ConvertTo-Json
     
     # Set up the authentication headers
@@ -85,7 +85,9 @@ $result = Add-ConnectWiseNote -ConnectWiseUrl $env:ConnectWisePsa_ApiBaseUrl `
     -Text $text `
     -Internal $internal
 
+Write-Host $result | ConvertTo-Json
+
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
-    Body = $result
+    Body = $result | ConvertTo-Json
 })
