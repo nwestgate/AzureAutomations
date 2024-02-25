@@ -73,6 +73,10 @@ if (-Not $internal) {
     $internal = $false
 }
 
+Write-Host "TicketId: $ticketId"
+Write-Host "Text: $text"
+Write-Host "Internal: $internal"
+
 $result = Add-ConnectWiseNote -ConnectWiseUrl $env:ConnectWisePsa_ApiBaseUrl `
     -PublicKey "$env:ConnectWisePsa_ApiCompanyId+$env:ConnectWisePsa_ApiPublicKey" `
     -PrivateKey $env:ConnectWisePsa_ApiPrivateKey `
