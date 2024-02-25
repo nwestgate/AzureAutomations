@@ -79,7 +79,7 @@ $result = Add-ConnectWiseNote -ConnectWiseUrl $env:ConnectWisePsa_ApiBaseUrl `
     -ClientId $env:ConnectWisePsa_ApiClientId `
     -TicketId $ticketId `
     -Text $text `
-    -Internal
+    -Internal $internal
 
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
