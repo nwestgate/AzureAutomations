@@ -26,9 +26,10 @@ function Add-ConnectWiseNote {
 
     # Create the note serviceObject
     $notePayload = @{
+        ticketId = $TicketId
         text = $Text
         detailDescriptionFlag = $true
-        #internalAnalysisFlag = $Internal
+        internalAnalysisFlag = $Internal
         #resolutionFlag 
         #customerUpdatedFlag
     } | ConvertTo-Json
@@ -40,21 +41,10 @@ function Add-ConnectWiseNote {
         "clientId" = $ClientId
     }
 
-    try {
-        # Make the API request to add the note
-        $result =   Invoke-RestMethod -Uri $apiUrl -Method Post -Headers $headers -Body $notePayload
-        Write-Host $result
-        return @{
-            StatusCode = 200
-            Message = "Note added successfully to ticket $TicketNumber."
-        }
-    }
-    catch {
-        return @{
-            StatusCode = 500
-            Message = "Error adding internal note: $($_.Exception.Message)"
-        }
-    } 
+    # Make the API request to add the note
+    $result = Invoke-RestMethod -Uri $apiUrl -Method Post -Headers $headers -Body $notePayload
+    Write-Host $result
+    return $result
 }
 
 $ticketId = $Request.Body.ticketId
@@ -63,11 +53,11 @@ $internal = $Request.Body.internal
 
 if (-Not $ticketId) {
     Write-Host "Missing ticket number"
-    #break;
+    break;
 }
 if (-Not $text) {
     Write-Host "Missing ticket text"
-    #break;
+    break;
 }
 if (-Not $internal) {
     $internal = $false
