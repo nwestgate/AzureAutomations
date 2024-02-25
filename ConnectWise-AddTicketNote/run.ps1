@@ -26,10 +26,11 @@ function Add-ConnectWiseNote {
 
     # Create the note serviceObject
     $notePayload = @{
-        ticketId = $TicketId
         text = $Text
         detailDescriptionFlag = $true
         #internalAnalysisFlag = $Internal
+        #resolutionFlag 
+        #customerUpdatedFlag
     } | ConvertTo-Json
     
     # Set up the authentication headers
@@ -85,7 +86,7 @@ $result = Add-ConnectWiseNote -ConnectWiseUrl $env:ConnectWisePsa_ApiBaseUrl `
     -Text $text `
     -Internal $internal
 
-Write-Host $result | ConvertTo-Json
+Write-Host $result.Message
 
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
