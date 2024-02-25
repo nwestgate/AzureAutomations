@@ -61,11 +61,11 @@ $ticketId = $Request.Body.ticketId
 $text = $Request.Body.text
 $internal = $Request.Body.internal
 
-if (-Not $ticketNumber) {
+if (-Not $ticketId) {
     Write-Host "Missing ticket number"
     break;
 }
-if (-Not $noteContent) {
+if (-Not $text) {
     Write-Host "Missing ticket text"
     break;
 }
