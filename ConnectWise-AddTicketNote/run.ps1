@@ -22,7 +22,7 @@ function Add-ConnectWiseNote {
     )
 
     # Construct the API endpoint for adding a note
-    $apiUrl = "$ConnectWiseUrl/v4_6_release/apis/3.0/service/tickets/$TicketNumber/notes"
+    $apiUrl = "$ConnectWiseUrl/v4_6_release/apis/3.0/service/tickets/$TicketId/notes"
 
     # Create the note serviceObject
     $notePayload = @{
@@ -57,18 +57,17 @@ function Add-ConnectWiseNote {
     } 
 }
 
-# Example usage:
 $ticketId = $Request.Body.ticketId
 $text = $Request.Body.text
 $internal = $Request.Body.internal
 
 if (-Not $ticketId) {
     Write-Host "Missing ticket number"
-    break;
+    #break;
 }
 if (-Not $text) {
     Write-Host "Missing ticket text"
-    break;
+    #break;
 }
 if (-Not $internal) {
     $internal = $false
