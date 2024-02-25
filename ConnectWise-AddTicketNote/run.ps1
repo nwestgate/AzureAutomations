@@ -57,9 +57,9 @@ function Add-ConnectWiseNote {
 }
 
 # Example usage:
-$ticketId =  Request.Body.ticketId
-$text = Request.Body.text
-$internal = Request.Body.internal
+$ticketId = $Request.Body.ticketId
+$text = $Request.Body.text
+$internal = $Request.Body.internal
 
 if (-Not $ticketNumber) {
     Write-Host "Missing ticket number"
