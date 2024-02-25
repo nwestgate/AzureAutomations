@@ -1,87 +1,88 @@
+# ConnectWise-AddTicketNote
+# Parameters:
+#  ticketId - string value of numeric ticket number
+#  text - text of note to add
+#  internal - boolean indicating whether not should be internal only
+
 using namespace System.Net
 
 # Input bindings are passed in via param block.
 param($Request, $TriggerMetadata)
 # Define variables
 
-function Add-ConnectWiseInternalNote {
+function Add-ConnectWiseNote {
     param (
         [string]$ConnectWiseUrl,
         [string]$PublicKey,
         [string]$PrivateKey,
-        [string]$TicketNumber,
-        [string]$NoteContent,
-        [string]$NoteType = "Internal"
+        [string]$ClientId,
+        [string]$TicketId,
+        [string]$Text,
+        [boolean]$Internal = $false
     )
 
     # Construct the API endpoint for adding a note
     $apiUrl = "$ConnectWiseUrl/v4_6_release/apis/3.0/service/tickets/$TicketNumber/notes"
 
-    # Create the note payload
+    # Create the note serviceObject
     $notePayload = @{
-        ticketId = $TicketNumber
-        text = $NoteContent
+        ticketId = $TicketId
+        text = $Text
         detailDescriptionFlag = $true
-        internalAnalysisFlag = $false
+        internalAnalysisFlag = $Internal
+    } | ConvertTo-Json
+    
+    # Set up the authentication headers
+    $headers = @{
+        "Authorization" = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${PublicKey}:${PrivateKey}"))
+        "Content-Type" = "application/json"
+        "clientId" = $ClientId
     }
 
-    $bodyJson = $notePayload | ConvertTo-Json
-
-    Write-Host $bodyJson
-
- #   try {
-        # Set up the authentication headers
-        $headers = @{
-            'Authorization' = 'Basic YnViYmxlbGlmZV9mK1ZWZTc3bFhaazZTSGhSajc6QkNLaEpyd2lOaUNYNWcyQg==' # "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${PublicKey}:${PrivateKey}"))
-            'Content-Type' = 'application/json'
-            'clientId' = 'be9644bd-c71a-4e94-91fc-792177756a4c'
-        }
-
-Write-host $apiUrl
-
+    try {
         # Make the API request to add the note
-     $result =   Invoke-RestMethod -Uri $apiUrl -Method Post -Headers $headers -Body $bodyJson
-
-     Write-Host $result
-
-        Write-Host "Internal note added successfully to ticket $TicketNumber."
-#    }
-#    catch {
-#        Write-Host "Error adding internal note: $($_.Exception.Message)"
-#    }
+        $result =   Invoke-RestMethod -Uri $apiUrl -Method Post -Headers $headers -Body $notePayload
+        Write-Host $result
+        return @{
+            StatusCode = 200
+            Message = "Note added successfully to ticket $TicketNumber."
+        }
+    }
+    catch {
+        return @{
+            StatusCode = 500
+            Message = "Error adding internal note: $($_.Exception.Message)"
+        }
+    } 
+    }
 }
 
 # Example usage:
-$connectWiseUrl = $env:ConnectWisePsa_ApiBaseUrl
-$publicKey = "$env:ConnectWisePsa_ApiCompanyId+$env:ConnectWisePsa_ApiPublicKey"
-$privateKey = $env:ConnectWisePsa_ApiPrivateKey
-$ticketNumber = '' #Request.Body.TicketNumber
-$noteContent = '' #Request.Body.Text
-$noteType = '' #Request.Body.NoteType
-
-Write-Host $connectWiseUrl
-
-Write-Host $publicKey
-Write-Host $privateKey
+$ticketId =  Request.Body.ticketId
+$text = Request.Body.text
+$internal = Request.Body.internal
 
 if (-Not $ticketNumber) {
- $ticketNumber = "7765"
+    Write-Host "Missing ticket number"
+    break;
 }
 if (-Not $noteContent) {
-    $noteContent = "This is a sample note for ticket $ticketNumber."   
+    Write-Host "Missing ticket text"
+    break;
+}
+if (-Not $internal) {
+    $internal = $false
 }
 
-Add-ConnectWiseInternalNote -ConnectWiseUrl $connectWiseUrl -PublicKey $publicKey -PrivateKey $privateKey -TicketNumber $ticketNumber -NoteContent $noteContent
+$result = Add-ConnectWiseNote -ConnectWiseUrl $env:ConnectWisePsa_ApiBaseUrl `
+    -PublicKey "$env:ConnectWisePsa_ApiCompanyId+$env:ConnectWisePsa_ApiPublicKey" `
+    -PrivateKey $env:ConnectWisePsa_ApiPrivateKey `
+    -ClientId $env:ConnectWisePsa_ApiClientId `
+    -TicketId $ticketId `
+    -Text $text `
+    -Internal
 
-
-#$body = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-
-#if ($name) {
-#    $body = "Hello, $name. This HTTP triggered function executed successfully."
-#}
-
-# Associate values to output bindings by calling 'Push-OutputBinding'.
-#Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-#    StatusCode = [HttpStatusCode]::OK
-#    Body = $body
-#})
+Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
+    StatusCode = [HttpStatusCode]::OK
+    Body = $result
+})
