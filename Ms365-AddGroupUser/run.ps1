@@ -11,26 +11,29 @@ $err = ""
 $userEmail = $Request.Body.userEmail
 $groupName = $Request.Body.groupName
 $command = $Request.Body.command
+$tenantId = $Request.Body.tenantId
+
+if (-Not $userEmail) {
+    Write-Host "userEmail cannot be blank."
+    break
+}
+if (-Not $groupName) {
+    Write-Host "groupName cannot be blank."
+    break
+}
+
+if (-Not $tenantId) {
+    $tenantId = $env:Ms365_TenantId
+}
 
 Write-Host "User Email: $userEmail"
 Write-Host "Group Name: $groupName"
-
-if (-Not $userEmail) {
-    $err = "userEmail cannot be blank."
-}
-if (-Not $groupName) {
-    $err = "groupName cannot be blank."
-}
-
-if ($err) {
-    Write-Host $err
-    break
-}
+Write-Host "Tenant Id: $tenantId"
 
 $secure365Password = ConvertTo-SecureString -String $env:Ms365_AuthSecretId -AsPlainText -Force
 $credential365 = New-Object System.Management.Automation.PSCredential($env:Ms365_AuthAppId, $secure365Password)
 
-Connect-MgGraph -ClientSecretCredential $credential365 -TenantId $env:Ms365_TenantId
+Connect-MgGraph -ClientSecretCredential $credential365 -TenantId $tenantId
 
 $groupObject = Get-MgGroup -Filter "displayName eq '$groupName'"
 
