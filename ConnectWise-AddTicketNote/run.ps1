@@ -1,14 +1,28 @@
-# ConnectWise-AddTicketNote
-# Parameters:
-#  ticketId - string value of numeric ticket number
-#  text - text of note to add
-#  internal - boolean indicating whether not should be internal only
+<# 
+
+ConnectWise-AddTicketNote
+
+This PowerShell script adds a note to a ConnectWise ticket.
+
+Parameters
+
+    ticketId - string value of numeric ticket number
+    text - text of note to add
+    internal - boolean indicating whether not should be internal only
+
+JSON Structure
+
+    {
+        "ticketId": "123456",
+        "text": "This is a note",
+        "internal": true
+    }
+
+#>
 
 using namespace System.Net
 
-# Input bindings are passed in via param block.
 param($Request, $TriggerMetadata)
-# Define variables
 
 function Add-ConnectWiseNote {
     param (
@@ -77,7 +91,12 @@ $result = Add-ConnectWiseNote -ConnectWiseUrl $env:ConnectWisePsa_ApiBaseUrl `
 
 Write-Host $result.Message
 
+$body = @{
+    response = $result | ConvertTo-Json;
+} 
+
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
-    Body = $result | ConvertTo-Json
+    Body = $body
+    ContentType = "application/json"
 })

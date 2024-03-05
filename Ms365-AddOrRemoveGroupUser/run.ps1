@@ -1,12 +1,32 @@
+<# 
+
+Ms365-AddOrRemoveGroupUser
+
+This function is used to add or remove a user from a distribution group in Microsoft 365.
+
+Parameters
+
+    userEmail - user email address that exists in the tenant
+    groupName - group name that exists in the tenant
+    command - string value of "add" or "remove"
+    tenantId - string value of the tenant id, if blank uses the environment variable Ms365_TenantId
+
+JSON Structure
+
+    {
+        "userEmail": "email@address.com",
+        "groupName": "Group Name",
+        "command": "add",
+        "tenantId": "12345678-1234-1234-1234-123456789012"
+    }
+
+#>
+
 using namespace System.Net
 
-# Input bindings are passed in via param block.
 param($Request, $TriggerMetadata)
 
-# Write to the Azure Functions log stream.
 Write-Host "Add User Distribution Group function triggered."
-
-$err = ""
 
 $userEmail = $Request.Body.userEmail
 $groupName = $Request.Body.groupName
@@ -58,14 +78,13 @@ else {
     }
 }
 
-$body = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-
-if ($name) {
-    $body = "Hello, $name. This HTTP triggered function executed successfully."
-}
+$body = @{
+    response = "Group $groupName has been updated ($command) with user $userEmail."
+} 
 
 # Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
     Body = $body
+    ContentType = "application/json"
 })
