@@ -1,1 +1,4 @@
 SetPasswords.ps1
+.github/
+.idea/
+.vscode/
