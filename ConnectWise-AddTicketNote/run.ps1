@@ -1,22 +1,42 @@
 <# 
 
-ConnectWise-AddTicketNote
+.SYNOPSIS
+    
+        This function is used to add a note to a ConnectWise ticket.
 
-This PowerShell script adds a note to a ConnectWise ticket.
+.DESCRIPTION
+                    
+            This function is used to add a note to a ConnectWise ticket.
+                    
+            The function requires the following environment variables to be set:
+                    
+            ConnectWisePsa_ApiBaseUrl - Base URL of the ConnectWise API
+            ConnectWisePsa_ApiCompanyId - Company Id of the ConnectWise API
+            ConnectWisePsa_ApiPublicKey - Public Key of the ConnectWise API
+            ConnectWisePsa_ApiPrivateKey - Private Key of the ConnectWise API
+            ConnectWisePsa_ApiClientId - Client Id of the ConnectWise API
+                    
+            The function requires the following modules to be installed:
+                    
+            None        
 
-Parameters
+.INPUTS
 
     TicketId - string value of numeric ticket number
     Message - text of note to add
     Internal - boolean indicating whether not should be internal only
 
-JSON Structure
+    JSON Structure
 
     {
         "TicketId": "123456",
         "Message": "This is a note",
         "Internal": true
     }
+
+.OUTPUTS
+    
+    JSON structure of the response from the ConnectWise API
 
 #>
 

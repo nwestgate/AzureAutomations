@@ -1,17 +1,31 @@
 <# 
 
-Ms365-RemoveGroupUser
+.SYNOPSIS
+    
+    This function is used to remove a user from a distribution group in Microsoft 365.
 
-This function is used to remove a user from a distribution group in Microsoft 365.
+.DESCRIPTION
+            
+        This function is used to remove a user from a distribution group in Microsoft 365.
+        
+        The function requires the following environment variables to be set:
+        
+        Ms365_AuthAppId - Application Id of the service principal
+        Ms365_AuthSecretId - Secret Id of the service principal
+        Ms365_TenantId - Tenant Id of the Microsoft 365 tenant
+        
+        The function requires the following modules to be installed:
+        
+        Microsoft.Graph
 
-Parameters
+.INPUTS
 
     UserEmail - user email address that exists in the tenant
     GroupName - group name that exists in the tenant
     TenantId - string value of the tenant id, if blank uses the environment variable Ms365_TenantId
     TicketId - optional - string value of the ticket id used for transaction tracking
 
-JSON Structure
+    JSON Structure
 
     {
         "UserEmail": "email@address.com",
@@ -20,7 +34,7 @@ JSON Structure
         "TicketId": "123456
     }
 
-Return Results 
+.OUTPUTS
 
     Message - Descriptive string of result
     TicketId - TicketId passed in Parameters
@@ -35,8 +49,8 @@ param($Request, $TriggerMetadata)
 
 Write-Host "Add User to Group function triggered."
 
-$ResultCode = 200
-$Message = ""
+$resultCode = 200
+$message = ""
 
 $UserEmail = $Request.Body.UserEmail
 $GroupName = $Request.Body.GroupName
@@ -44,16 +58,16 @@ $TenantId = $Request.Body.TenantId
 $TicketId = $Request.Body.TicketId
 
 if (-Not $userEmail) {
-    $Message = "UserEmail cannot be blank."
-    $ResultCode = 500
+    $message = "UserEmail cannot be blank."
+    $resultCode = 500
 }
 else {
     $UserEmail = $UserEmail.Trim()
 }
 
 if (-Not $groupName) {
-    $Message = "GroupName cannot be blank."
-    $ResultCode = 500
+    $message = "GroupName cannot be blank."
+    $resultCode = 500
 }
 else {
     $GroupName = $GroupName.Trim()
@@ -75,7 +89,7 @@ Write-Host "Group Name: $GroupName"
 Write-Host "Tenant Id: $TenantId"
 Write-Host "Ticket Id: $TicketId"
 
-if ($ResultCode -Eq 200)
+if ($resultCode -Eq 200)
 {
     $secure365Password = ConvertTo-SecureString -String $env:Ms365_AuthSecretId -AsPlainText -Force
     $credential365 = New-Object System.Management.Automation.PSCredential($env:Ms365_AuthAppId, $secure365Password)
@@ -93,38 +107,38 @@ if ($ResultCode -Eq 200)
     Write-Host $UserObject.Id
 
     if (-Not $GroupObject) {
-        $Message = "Request failed. Group `"$GroupName`" could not be found to add user `"$UserEmail`" to."
-        $ResultCode = 500
+        $message = "Request failed. Group `"$GroupName`" could not be found to add user `"$UserEmail`" to."
+        $resultCode = 500
     }
 
     if (-Not $UserObject) {
-        $Message = "Request failed. User `"$UserEmail`" not be found to add to group `"$GroupName`"."
-        $ResultCode = 500
+        $message = "Request failed. User `"$UserEmail`" not be found to add to group `"$GroupName`"."
+        $resultCode = 500
     }
 
     $GroupMembers = Get-MgGroupMember -GroupId $GroupObject.Id
 
     if ($GroupMembers.Id -NotContains $UserObject.Id) {
-        $Message = "Request failed. User `"$UserEmail`" is not a member of group `"$GroupName`"."
-        $ResultCode = 500
+        $message = "Request failed. User `"$UserEmail`" is not a member of group `"$GroupName`"."
+        $resultCode = 500
     } 
 
-    if ($ResultCode -Eq 200) {
+    if ($resultCode -Eq 200) {
         Remove-MgGroupMember -GroupId $GroupObject.Id -DirectoryObjectId $UserObject.Id
         $message = "Request completed. `"$UserEmail`" has been removed from group `"$GroupName`"."
     }
 }
 
-$Body = @{
-    Message = $Message
+$body = @{
+    Message = $message
     TicketId = $TicketId
-    ResultCode = $ResultCode
-    ResultStatus = if ($ResultCode -eq 200) { "Success" } else { "Failure" }
+    ResultCode = $resultCode
+    ResultStatus = if ($resultCode -eq 200) { "Success" } else { "Failure" }
 } 
 
 # Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
     StatusCode = [HttpStatusCode]::OK
-    Body = $Body
+    Body = $body
     ContentType = "application/json"
 })

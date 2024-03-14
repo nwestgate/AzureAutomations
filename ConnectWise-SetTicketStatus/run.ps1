@@ -1,23 +1,42 @@
 <# 
 
-ConnectWise-SetTicketStatus
+.SYNOPSIS
+    
+        This function is used to set the status of a ConnectWise ticket based on the result code.
 
-This PowerShell script sets the status of a ConnectWise ticket based on the result code.
+.DESCRIPTION
+                
+        This function is used to set the status of a ConnectWise ticket based on the result code.
+                
+        The function requires the following environment variables to be set:
+                
+        ConnectWisePsa_ApiBaseUrl - Base URL of the ConnectWise API
+        ConnectWisePsa_ApiCompanyId - Company Id of the ConnectWise API
+        ConnectWisePsa_ApiPublicKey - Public Key of the ConnectWise API
+        ConnectWisePsa_ApiPrivateKey - Private Key of the ConnectWise API
+        ConnectWisePsa_ApiClientId - Client Id of the ConnectWise API
+        ConnectWisePsa_ApiStatusClosed - Status to set when result code is 200
+        ConnectWisePsa_ApiStatusOpen - Status to set when result code is not 200
+                
+        The function requires the following modules to be installed:
+                
+        None    
 
-Parameters
+.INPUTS
 
     TicketId - string value of numeric ticket number
     ResultCode - numeric value of result code, 200 = success
-    StatusClosed - text value of ticket status if result code indicated success
-    StatusOpen - text value of ticket status if esult code indicated failure
 
-JSON Structure
+    JSON Structure
 
     {
-        "TicketId": "123456",
-        "StatusClosed": "Closed",
-        "StatusOpen": "New"
+        "TicketId": "123456"
+        "ResultCode": 200
     }
+
+.OUTPUTS
+
+    JSON structure of the response from the ConnectWise API
 
 #>
 
@@ -58,8 +77,8 @@ function Set-ConnectWiseTicketStatus {
 }
 
 $TicketId = $Request.Body.TicketId
-$StatusClosed = $Request.Body.StatusClosed
-$StatusOpen = $Request.Body.StatusOpen
+$StatusClosed = $env:ConnectWisePsa_ApiStatusClosed
+$StatusOpen = $env:ConnectWisePsa_ApiStatusOpen
 
 if (-Not $TicketId) {
     Write-Host "Missing ticket number"

@@ -1,18 +1,38 @@
 <# 
 
-Utility-SetFormattedEmail
+.SYNOPSIS
+    
+    This function is used to add a user to a group in Microsoft 365.
 
-This PowerShell script takes a message and renders an HTML formatted email
+.DESCRIPTION
+        
+    This function is used to add a user to a group in Microsoft 365.
+        
+    The function requires the following environment variables to be set:
+        
+    Ms365_AuthAppId - Application Id of the service principal
+    Ms365_AuthSecretId - Secret Id of the service principal
+    Ms365_TenantId - Tenant Id of the Microsoft 365 tenant
+        
+    The function requires the following modules to be installed:
+        
+    Microsoft.Graph
 
-Parameters
-
+.INPUTS
+    
     Message - text of message to place in email
+    TicketId - optional - string value of the ticket id used for transaction tracking
 
-JSON Structure
+    JSON Structure
 
     {
         "Message": "This is the message"
+        "TicketId": "123456
     }
+
+.OUTPUTS
+
+    HTML formatted email message
 
 #>
 
