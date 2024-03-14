@@ -1,20 +1,40 @@
 <#
 
-Ms365-UpdateCsaCompanyTokens
+.SYNOPSIS
 
-This script updates the company tokens in CloudRadial with the list of groups in the tenant.
- 
-Parameters
+    This function is used to update the company tokens in CloudRadial from a Microsoft 365 tenant.
+
+.DESCRIPTION
+    
+    This function is used to update the company tokens in CloudRadial from a Microsoft 365 tenant.
+    
+    The function requires the following environment variables to be set:
+    
+    Ms365_AuthAppId - Application Id of the Azure AD application
+    Ms365_AuthSecretId - Secret Id of the Azure AD application
+    Ms365_TenantId - Tenant Id of the Azure AD application
+    CloudRadialCsa_ApiPublicKey - Public Key of the CloudRadial API
+    CloudRadialCsa_ApiPrivateKey - Private Key of the CloudRadial API
+    
+    The function requires the following modules to be installed:
+    
+    Microsoft.Graph     
+
+.INPUTS
 
     companyId - numeric company id
     tenantId - string value of the tenant id, if blank uses the environment variable Ms365_TenantId
 
-JSON Structure
+    JSON Structure
 
     {
         "companyId": "12"
         "tenantId": "12345678-1234-1234-1234-123456789012"
     }
+
+.OUTPUTS
+
+    A JSON result of the function
 
 #>
 
@@ -22,8 +42,9 @@ using namespace System.Net
 
 param($Request, $TriggerMetadata)
 
-function Set-GroupListToken {
+function Set-CloudRadialToken {
     param (
+        [string]$Token,
         [string]$AppId,
         [string]$SecretId,
         [int]$CompanyId,
@@ -39,7 +60,7 @@ function Set-GroupListToken {
 
     $body = @{
         "companyId" = $CompanyId
-        "token" = "CompanyGroups"
+        "token" = "$Token"
         "value" = "$GroupList"
     }
 
@@ -63,6 +84,9 @@ if (-Not $tenantId) {
     $tenantId = $env:Ms365_TenantId
 }
 
+$resultCode = 200
+$message = ""
+
 $secure365Password = ConvertTo-SecureString -String $env:Ms365_AuthSecretId -AsPlainText -Force
 $credential365 = New-Object System.Management.Automation.PSCredential($env:Ms365_AuthAppId, $secure365Password)
 
@@ -77,16 +101,34 @@ $groupNames = $groupList | Select-Object -ExpandProperty DisplayName
 # Convert the array of group names to a comma-separated string
 $groupNamesString = $groupNames -join ","
 
-Set-GroupListToken -AppId $$env:CloudRadialCsa_ApiPublicKey -SecretId $env:CloudRadialCsa_ApiPrivateKey -CompanyId $companyId -GroupList $groupNamesString
+Set-CloudRadialToken -Token "CompanyGroups" -AppId $$env:CloudRadialCsa_ApiPublicKey -SecretId $env:CloudRadialCsa_ApiPrivateKey -CompanyId $companyId -GroupList $groupNamesString
 
-Write-Host "Updatedfolders for Company Id: $companyId."
+Write-Host "Updated CompanyGroups for Company Id: $companyId."
+
+# Get the list of domains
+$domains = Get-MgDomain
+
+$domainNames = $domains | Select-Object -ExpandProperty Id
+
+$domainNamesString = $domainNames -join ","
+
+Set-CloudRadialToken -Token "CompanyDomains" -AppId $$env:CloudRadialCsa_ApiPublicKey -SecretId $env:CloudRadialCsa_ApiPrivateKey -CompanyId $companyId -GroupList $domainNamesString
+
+Write-Host "Updated CompanyDomains for Company Id: $companyId."
+
+$message = "Company tokens for $comanyId have been updated."
 
 $body = @{
-    response = "Company tokens for $comanyId have been updated."
+    Message      = $message
+    TicketId     = $TicketId
+    ResultCode   = $resultCode
+    ResultStatus = if ($resultCode -eq 200) { "Success" } else { "Failure" }
 } 
 
+# Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-    StatusCode = [HttpStatusCode]::OK
-    Body = $body
-    ContentType = "application/json"
-})
+        StatusCode  = [HttpStatusCode]::OK
+        Body        = $body
+        ContentType = "application/json"
+    })
+
